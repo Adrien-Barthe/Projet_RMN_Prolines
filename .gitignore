@@ -10,4 +10,4 @@ __pycache__/
 # Fichiers de données
 ids_*.txt
 *.json
-dataset_*.txt
+dataset_*.csv
