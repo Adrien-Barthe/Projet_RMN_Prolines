@@ -28,38 +28,41 @@ def run_id_mapping():
         for element in mapping_brut:
             v1, v2 = "", ""
 
-            # Si c'est une liste de dictionnaires (ex: [{"pdb": "1ABC", "bmrb": "1234"}])
-            if isinstance(element, dict):
-                valeurs = list(element.values())
-                if len(valeurs) >= 2:
-                    v1, v2 = str(valeurs[0]).upper(), str(valeurs[1])
-
-            # Si c'est une liste de listes (ex: [["1ABC", "1234"]])
+            # Format 1 : Le format standard API v2 [{"pdb_id": "1ABC", "bmrb_ids": ["1234", "5678"]}]
+            if isinstance(element, dict) and "pdb_id" in element and "bmrb_ids" in element:
+                pdb_id = str(element["pdb_id"]).upper()
+                for b_id in element["bmrb_ids"]:
+                    if pdb_id not in mapping_propre:
+                        mapping_propre[pdb_id] = []
+                    mapping_propre[pdb_id].append(str(b_id))
+                continue
+                
+            # Format 2 (Legacy/Secours) : Liste de valeurs ["1ABC", "1234"]
             elif isinstance(element, list) and len(element) >= 2:
                 v1, v2 = str(element[0]).upper(), str(element[1])
-
-            else:
-                continue  # Si c'est un format bizarre, on ignore la ligne
-
-            # Logique pour différencier le PDB (4 lettres/chiffres) du BMRB (que des chiffres)
-            if len(v1) == 4 and not v1.isdigit():
-                pdb_id, bmrb_id = v1, v2
-            else:
-                pdb_id, bmrb_id = v2, v1
-
-            if pdb_id not in mapping_propre:
-                mapping_propre[pdb_id] = []
-            mapping_propre[pdb_id].append(bmrb_id)
+                
+                if v1.isdigit() and not v2.isdigit():
+                    pdb_id, bmrb_id = v2.upper(), v1
+                elif v2.isdigit() and not v1.isdigit():
+                    pdb_id, bmrb_id = v1.upper(), v2
+                else:
+                    continue
+                    
+                if pdb_id not in mapping_propre:
+                    mapping_propre[pdb_id] = []
+                mapping_propre[pdb_id].append(bmrb_id)
 
         print("3. Traduction en cours...")
 
         bmrb_idp = []
         for pdb in pdb_idp:
+            pdb = pdb.upper()
             if pdb in mapping_propre:
                 bmrb_idp.extend(mapping_propre[pdb])
 
         bmrb_repliees = []
         for pdb in pdb_repliees:
+            pdb = pdb.upper()
             if pdb in mapping_propre:
                 bmrb_repliees.extend(mapping_propre[pdb])
 
