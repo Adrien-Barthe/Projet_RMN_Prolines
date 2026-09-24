@@ -67,48 +67,54 @@ def charger_ids(nom_fichier):
     return list(set(ids_propres))
 
 
-# On charge les listes TRADUITES générées à l'étape précédente
-liste_id_idp = charger_ids("ids_bmrb_idp.txt")
-liste_id_repliees = charger_ids("ids_bmrb_repliees.txt")
+def build_dataset():
+    # On charge les listes TRADUITES générées à l'étape précédente
+    liste_id_idp = charger_ids("ids_bmrb_idp.txt")
+    liste_id_repliees = charger_ids("ids_bmrb_repliees.txt")
 
-print(f"Prêt à traiter : {len(liste_id_idp)} IDPs et {len(liste_id_repliees)} Repliées.")
+    print(f"Prêt à traiter : {len(liste_id_idp)} IDPs et {len(liste_id_repliees)} Repliées.")
 
-# 3. La boucle de téléchargement
-tous_les_tableaux = []
+    # 3. La boucle de téléchargement
+    tous_les_tableaux = []
 
-print("\nTéléchargement des protéines désordonnées (IDP)...")
-for identifiant in liste_id_idp:
-    print(f"Traitement de {identifiant}...")
-    df = extraire_prolines(identifiant, "IDP")
-    if df is not None:
-        tous_les_tableaux.append(df)
-    time.sleep(0.5)
+    print("\nTéléchargement des protéines désordonnées (IDP)...")
+    for identifiant in liste_id_idp:
+        print(f"Traitement de {identifiant}...")
+        df = extraire_prolines(identifiant, "IDP")
+        if df is not None:
+            tous_les_tableaux.append(df)
+        time.sleep(0.5)
 
-print("\nTéléchargement des protéines repliées...")
-for identifiant in liste_id_repliees:
-    print(f"Traitement de {identifiant}...")
-    df = extraire_prolines(identifiant, "REPLIEE")
-    if df is not None:
-        tous_les_tableaux.append(df)
-    time.sleep(0.5)
+    print("\nTéléchargement des protéines repliées...")
+    for identifiant in liste_id_repliees:
+        print(f"Traitement de {identifiant}...")
+        df = extraire_prolines(identifiant, "REPLIEE")
+        if df is not None:
+            tous_les_tableaux.append(df)
+        time.sleep(0.5)
 
-#Nettoyage dataset
-if tous_les_tableaux:
-    dataframe_final = pd.concat(tous_les_tableaux, ignore_index=True)
+    #Nettoyage dataset
+    if tous_les_tableaux:
+        dataframe_final = pd.concat(tous_les_tableaux, ignore_index=True)
 
-    print("\n--- NETTOYAGE DU TABLEAU ---")
-    taille_avant = len(dataframe_final)
+        print("\n--- NETTOYAGE DU TABLEAU ---")
+        taille_avant = len(dataframe_final)
 
-    # Suppression des prolines incomplètes
-    dataframe_final = dataframe_final.dropna(subset=['Val_C', 'Val_CA', 'Val_CB'])
+        # Suppression des prolines incomplètes
+        dataframe_final = dataframe_final.dropna(subset=['Val_C', 'Val_CA', 'Val_CB'])
 
-    taille_apres = len(dataframe_final)
-    print(f"Prolines incomplètes supprimées : {taille_avant - taille_apres}")
+        taille_apres = len(dataframe_final)
+        print(f"Prolines incomplètes supprimées : {taille_avant - taille_apres}")
 
-    print("\n--- TABLEAU GÉANT CRÉÉ AVEC SUCCÈS ---")
-    print(f"Nombre total de prolines PARFAITES : {taille_apres}")
+        print("\n--- TABLEAU GÉANT CRÉÉ AVEC SUCCÈS ---")
+        print(f"Nombre total de prolines PARFAITES : {taille_apres}")
 
-    dataframe_final.to_csv("dataset_prolines_complet.csv", index=False)
-    print("Données sauvegardées dans 'dataset_prolines_complet.csv'")
-else:
-    print("Aucune donnée n'a pu être extraite.")
+        dataframe_final.to_csv("dataset_prolines_complet.csv", index=False)
+        print("Données sauvegardées dans 'dataset_prolines_complet.csv'")
+        return True
+    else:
+        print("Aucune donnée n'a pu être extraite.")
+        return False
+
+if __name__ == "__main__":
+    build_dataset()

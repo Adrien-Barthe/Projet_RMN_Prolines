@@ -1,0 +1,4 @@
+.git/
+__pycache__/
+*.csv
+ids_*.txt
